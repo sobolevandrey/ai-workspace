@@ -1,0 +1,18 @@
+# ai-workspace: в git идёт только ядро. Проекты и ключи — нет.
+.DS_Store
+__pycache__/
+/.aiw/
+/AGENTS.md
+/aiw
+/aiw.cmd
+projects/*
+!projects/_template/
+!projects/README.md
+chats/_raw/
+*.bak-*
+.env
+.env.*
+*.key
+*.pem
+id_rsa*
+id_ed25519*

@@ -1,0 +1,21 @@
+{
+  "_readme": [
+    "Подключения (MCP). После правки: aiw sync",
+    "command/args — локальный сервер; url — удалённый.",
+    "Ключи НЕ пишем сюда: \"secret:ИМЯ\" (добавить: aiw secret set ИМЯ).",
+    "targets — куда ставить: claude-desktop, claude-code, codex. Нет поля — везде. enabled:false — выключен.",
+    "$WORKSPACE — путь к рабочему пространству."
+  ],
+  "servers": {
+    "ai-files": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$WORKSPACE"]
+    },
+    "github": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "secret:github" }
+    }
+  }
+}

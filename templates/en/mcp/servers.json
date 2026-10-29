@@ -1,0 +1,30 @@
+{
+  "_readme": [
+    "Connections (MCP). After editing: aiw sync",
+    "command/args — local server; url — remote.",
+    "Never put keys here: use \"secret:NAME\" (add with: aiw secret set NAME).",
+    "targets — where to install: claude-desktop, claude-code, codex. No field = everywhere. enabled:false = off.",
+    "$WORKSPACE — path to your workspace."
+  ],
+  "servers": {
+    "ai-files": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "$WORKSPACE"
+      ]
+    },
+    "github": {
+      "enabled": false,
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "secret:github"
+      }
+    }
+  }
+}
