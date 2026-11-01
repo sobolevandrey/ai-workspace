@@ -12,5 +12,5 @@
 
 ## Status and chronicle
 - **`STATUS.md`** — where we are now (overwritten). **`chronicle/YYYY-MM.md`** — what happened and why (newest first).
-- When starting: read `STATUS.md` and the 2–3 latest chronicle entries.
-- At the end of a meaningful session: a chronicle entry + an updated `STATUS.md` (`project-chronicle` skill).
+- When starting: read `STATUS.md` (a "⚠ Needs attention" block comes first) and the 2–3 latest chronicle entries.
+- At the end of a meaningful session: a chronicle entry **and** a rewritten `STATUS.md` — the session isn't finished without both (`project-chronicle` skill).

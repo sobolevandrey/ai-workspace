@@ -21,10 +21,12 @@
 - `.secrets`, `.env`, SSH keys — don't read without a direct request and never print them in chat.
 
 ## Projects: status and chronicle
-- When starting work in a project, read its `STATUS.md` (where we are) and the latest `chronicle/` entries.
-- At the end of a meaningful session: add an entry to `chronicle/YYYY-MM.md` (when, which AI, why, done,
-  decision, files, next) and rewrite `STATUS.md`. Details — the `project-chronicle` skill.
-- Quick questions outside projects are not logged anywhere.
+- Starting work in a project: read `STATUS.md` and the 2–3 latest `chronicle/` entries. If the status has a
+  "⚠ Needs attention" block, handle its items first.
+- A session is finished only when BOTH files are updated: an entry in `chronicle/YYYY-MM.md` (month of the
+  entry) and a rewritten `STATUS.md`. One without the other is not finished. Details — `project-chronicle` skill.
+- First session of a new month: summarize the previous month in `chronicle/SUMMARY.md` (5–10 lines).
+- Quick questions outside projects are not logged. Finished projects go to `projects/_archive/`.
 
 ## Skills and connections
 - Install new skills into the workspace `skills/<name>/` (a folder with SKILL.md), not into a specific AI's folder.

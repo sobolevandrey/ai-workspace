@@ -96,7 +96,8 @@ your data in `~/AI`, so updates never touch your files.
 | `aiw sync` | Links rules, skills, hook, MCP; backs up. Runs daily at 21:07 on its own |
 | `aiw new-project Name` | New project from the template (`Group/Name` for groups) |
 | `aiw secret set NAME` | Store a key for an MCP connection |
-| `aiw doctor` | Health check: what's found and configured |
+| `aiw doctor` | Install check: what's found and configured |
+| `aiw check` | Chronicle debts and bloat per project (read-only) |
 | `aiw update` | Update ai-workspace (your files are untouched) |
 | `aiw import-chats` | ChatGPT/Claude exports from `chats/_raw/` → markdown archive |
 | `aiw uninstall` | Unlink from AI tools. Your data stays |
@@ -115,6 +116,26 @@ file for long-running agents and Cline's Memory Bank):
 Every AI reads the status and latest entries at the start and updates them at the end. Claude Code is
 forced to (hook). With [SpecStory](https://specstory.com) installed, full agent transcripts are saved
 into the project automatically too.
+
+## Nightly check: the system heals itself
+
+AI tools forget. So every evening `aiw sync` compares what changed in each project with what was logged
+and puts a "⚠ Needs attention" block at the top of `STATUS.md`: unlogged work, status behind the
+chronicle, last month not summarized, a file has bloated. Every AI reads the status first — and closes
+the debt first. Once closed, the block disappears on its own. An overview of all projects is in `PROJECTS.md`.
+
+## Still lean after two years
+
+Only a little goes into each conversation: rules and profile (~6000-char budget), `STATUS.md` (≤ 1 page),
+`SUMMARY.md` and the 2–3 latest entries. Everything else stays on disk but out of the context.
+
+| What grows | How it's kept in check |
+|---|---|
+| Chronicle | one file per month; monthly 5–10-line summary in `chronicle/SUMMARY.md` |
+| `STATUS.md`, `AGENTS.md` | line limits, the check warns about bloat |
+| Rules and profile | a character budget; narrow rules move into skills (loaded only when needed) |
+| Skills | a warning after 60; unused ones go to `skills/_archive/` |
+| Projects | `PROJECTS.md` with last activity; inactive > 90 days — candidates for `projects/_archive/` |
 
 ## Skills and connections
 

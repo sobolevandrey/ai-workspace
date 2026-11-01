@@ -5,7 +5,8 @@
   aiw setup              первичная настройка                 first-time setup
   aiw sync               разложить всё по нейросетям          sync rules, skills, hook, MCP, backup
   aiw update             обновить ai-workspace                update the engine
-  aiw doctor             проверка                             health check
+  aiw doctor             проверка установки                   install health check
+  aiw check              долги летописи и раздувание (без записи)  chronicle debts & bloat (read-only)
   aiw new-project NAME   новый проект (Группа/Имя — в группе)  new project (Group/Name for groups)
   aiw secret set NAME    сохранить ключ для MCP                store a secret for MCP
   aiw import-chats       экспорт ChatGPT/Claude → markdown     chat exports → markdown
@@ -303,11 +304,15 @@ def cmd_sync(a):
     else:
         say(t("  не установлен (см. README)", "  not installed (see README)"))
 
-    say(t("7) Бэкап (git)", "7) Backup (git)"))
+    say(t("7) Проверка проектов → ПРОЕКТЫ.md", "7) Project check → PROJECTS.md"))
+    import health
+    health.run(ws, cfg["names"], cfg["lang"])
+
+    say(t("8) Бэкап (git)", "8) Backup (git)"))
     git_backup(ws)
 
     if cfg.get("schedule", True):
-        say(t("8) Автозапуск каждый вечер", "8) Daily auto-sync"))
+        say(t("9) Автозапуск каждый вечер", "9) Daily auto-sync"))
         install_schedule(cfg)
 
     if not getattr(a, "quiet", False) and sys.stdout.isatty():
@@ -510,6 +515,12 @@ def cmd_doctor(a):
         say(f"{ok(b)} {k:16} {v}")
 
 
+def cmd_check(a):
+    cfg = C.load_config()
+    import health
+    health.run(Path(cfg["workspace"]), cfg["names"], cfg["lang"], dry=True)
+
+
 def cmd_new_project(a):
     cfg = C.load_config()
     ws = Path(cfg["workspace"])
@@ -594,6 +605,7 @@ def main():
     s.add_argument("--log", action="store_true")
     sub.add_parser("update")
     sub.add_parser("doctor")
+    sub.add_parser("check")
     s = sub.add_parser("new-project")
     s.add_argument("name")
     s = sub.add_parser("secret")
@@ -602,7 +614,7 @@ def main():
     sub.add_parser("import-chats")
     sub.add_parser("uninstall")
     a = p.parse_args()
-    fn = {"setup": cmd_setup, "sync": cmd_sync, "update": cmd_update, "doctor": cmd_doctor,
+    fn = {"setup": cmd_setup, "sync": cmd_sync, "update": cmd_update, "doctor": cmd_doctor, "check": cmd_check,
           "new-project": cmd_new_project, "secret": cmd_secret, "import-chats": cmd_import_chats,
           "uninstall": cmd_uninstall}.get(a.cmd)
     if not fn:
