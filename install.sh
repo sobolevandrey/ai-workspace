@@ -6,6 +6,7 @@ set -e
 REPO="${AIW_REPO:-https://github.com/sobolevandrey/ai-workspace.git}"
 ENGINE="${AIW_ENGINE:-$HOME/.ai-workspace}"
 OS="$(uname)"
+YES=0; for a in "$@"; do [ "$a" = "--yes" ] && YES=1; done   # --yes: без вопросов (ставит нейросеть)
 need() { command -v "$1" >/dev/null 2>&1; }
 say()  { printf '%s\n' "$*"; }
 ask()  { printf '%s ' "$1"; read -r REPLY </dev/tty || REPLY=""; }
@@ -41,7 +42,10 @@ pkg_install() {
 need git     || pkg_install git
 need python3 || pkg_install python3
 
-if ! need npx; then
+if ! need npx && [ "$YES" = 1 ]; then
+  say "Node.js не найден — доступ к файлам из Claude Desktop можно включить позже. / Node.js not found — file access from Claude Desktop can be enabled later."
+  if [ "$OS" = "Darwin" ] && need brew; then brew install node || true; fi
+elif ! need npx; then
   ask "Node.js нужен, чтобы Claude Desktop видел твои файлы (MCP). Установить? / Node.js lets Claude Desktop see your files (MCP). Install? [Y/n]"
   case "$REPLY" in n*|N*) ;; *) if [ "$OS" = "Darwin" ]; then pkg_install node; else pkg_install nodejs npm; fi ;; esac
 fi

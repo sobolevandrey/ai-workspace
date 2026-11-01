@@ -22,7 +22,9 @@ if (Has py) { $py = @("py", "-3") }
 elseif ((Has python) -and -not ((Get-Command python).Source -like "*WindowsApps*")) { $py = @("python") }
 if (-not $py) { Install-Winget "Python.Python.3.12"; Refresh-Path; $py = @("py", "-3") }
 
-if (-not (Has npx)) {
+$Yes = $args -contains "--yes"   # --yes: без вопросов (ставит нейросеть)
+if (-not (Has npx) -and $Yes) { Install-Winget "OpenJS.NodeJS.LTS"; Refresh-Path }
+elseif (-not (Has npx)) {
   $a = Read-Host "Node.js нужен, чтобы Claude Desktop видел твои файлы (MCP). Установить? / Node.js lets Claude Desktop see your files (MCP). Install? [Y/n]"
   if ($a -notmatch '^[nN]') { Install-Winget "OpenJS.NodeJS.LTS"; Refresh-Path }
 }

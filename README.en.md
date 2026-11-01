@@ -63,6 +63,15 @@ picks it up. Meta AI isn't available in every country and has no instructions be
 
 ## Install
 
+### Not technical? Ask your AI
+
+Copy the [install prompt](docs/install-prompt.en.md) and send it to an AI that can work with files on your
+computer (Codex, Claude with computer access, Kimi Work, ZCode). It installs the system, interviews you
+briefly and fills everything in. You just talk.
+
+### Manually — one command
+
+
 **macOS / Linux** — in Terminal:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/sobolevandrey/ai-workspace/main/install.sh | bash

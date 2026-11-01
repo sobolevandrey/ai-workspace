@@ -200,12 +200,18 @@ def cmd_setup(a):
    и правила: {ws / 'rules' / 'core.md'}
 2. Запусти «{launcher} sync» и вставь тексты из {ws / '.aiw' / 'out'} в веб-версии (см. README).
 3. Работай в проектах: «{launcher} new-project Имя» → открывай папку проекта в любой нейросети.
+
+Проще всего: скажи своей нейросети «проведи онбординг ai-workspace» — она возьмёт у тебя интервью
+и всё заполнит сама (инструкция для неё: {ENGINE / 'skills' / 'ru' / 'aiw-onboarding' / 'SKILL.md'}).
 """, f"""
 === Done. 3 next steps ===
 1. Describe yourself: {ws / 'memory' / 'profile.md'}
    and your rules: {ws / 'rules' / 'core.md'}
 2. Run “{launcher} sync” and paste the texts from {ws / '.aiw' / 'out'} into web apps (see README).
 3. Work in projects: “{launcher} new-project Name” → open the project folder in any AI tool.
+
+Easiest: tell your AI “run the ai-workspace onboarding” — it will interview you and fill everything in
+(instructions for it: {ENGINE / 'skills' / 'en' / 'aiw-onboarding' / 'SKILL.md'}).
 """))
 
 
