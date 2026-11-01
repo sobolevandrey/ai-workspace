@@ -23,7 +23,7 @@ Read `STATUS.md` and the 2–3 latest chronicle entries.
 ## At the end of a meaningful session
 (something was decided, done or files changed; don't log quick questions or chit-chat)
 
-1. **Chronicle** — one entry per session; if this session already has one, extend it.
+1. **Chronicle** — use the file for the month of the entry: a November 1 entry goes to `2026-11.md`, not October’s (create it with a month heading if missing). One entry per session; if this session already has one, extend it.
 
 ```markdown
 ### 2026-01-31 18:40 · Claude · Name

@@ -243,6 +243,12 @@ def cmd_sync(a):
         targets.append(HOME / ".claude" / "CLAUDE.md")
     if (HOME / ".codex").exists():
         targets.append(HOME / ".codex" / "AGENTS.md")
+    grok = Path(os.environ.get("GROK_HOME", HOME / ".grok"))
+    kimi = Path(os.environ.get("KIMI_CODE_HOME", HOME / ".kimi-code"))
+    for d, f in ((HOME / ".agents", "AGENTS.md"), (grok, "AGENTS.md"), (kimi, "AGENTS.md"), (HOME / ".qwen", "QWEN.md")):
+        agents_std = d.name == ".agents" and any((HOME / x).exists() for x in (".codex", ".kimi-code", ".grok"))
+        if d.exists() or agents_std:                 # только если инструмент установлен
+            targets.append(d / f)
     for tg in targets:
         place(out / "AGENTS.md", tg, bak)
 
@@ -251,7 +257,11 @@ def cmd_sync(a):
     if (HOME / ".claude").exists():
         dirs.append(HOME / ".claude" / "skills")
     if (HOME / ".codex").exists():
-        dirs += [HOME / ".codex" / "skills", HOME / ".agents" / "skills"]
+        dirs += [HOME / ".codex" / "skills"]
+    if any((HOME / x).exists() for x in (".codex", ".agents", ".kimi-code", ".grok")):
+        dirs.append(HOME / ".agents" / "skills")     # общий стандарт: Codex, Kimi Code, Grok Build
+    if (HOME / ".qwen").exists():
+        dirs.append(HOME / ".qwen" / "skills")       # Qwen Code ищет скилы только у себя
     skills = skill_set(cfg)
     for d in dirs:                                   # забрать скилы, созданные прямо в инструментах
         if not d.exists():
@@ -306,11 +316,13 @@ def cmd_sync(a):
         say(t(f"""✓ Готово. Тексты для веб-версий — в {out}:
   Claude   → Настройки → инструкции для Claude     ← custom-instructions.txt
   ChatGPT  → Настройки → Персонализация            ← chatgpt.txt
-  Kimi и др. с «памятью» → сообщениями в чат        ← memory-messages.txt""",
+  Grok     → Настройки → Customize → инструкции     ← chatgpt.txt
+  Kimi, Qwen, Meta AI (память) → сообщениями в чат  ← memory-messages.txt""",
               f"""✓ Done. Texts for web apps are in {out}:
   Claude   → Settings → instructions for Claude   ← custom-instructions.txt
   ChatGPT  → Settings → Personalization           ← chatgpt.txt
-  Kimi & other apps with memory → as chat messages ← memory-messages.txt"""))
+  Grok     → Settings → Customize → instructions   ← chatgpt.txt
+  Kimi, Qwen, Meta AI (memory) → as chat messages  ← memory-messages.txt"""))
 
 
 def project_dirs(ws):
@@ -488,6 +500,9 @@ def cmd_doctor(a):
         ("Claude Desktop", str(C.claude_desktop_config().parent), C.claude_desktop_config().parent.exists()),
         ("Claude Code", str(HOME / ".claude"), (HOME / ".claude").exists()),
         ("Codex", str(HOME / ".codex"), (HOME / ".codex").exists()),
+        ("Grok Build", str(HOME / ".grok"), (HOME / ".grok").exists()),
+        ("Kimi Code", str(HOME / ".kimi-code"), (HOME / ".kimi-code").exists()),
+        ("Qwen Code", str(HOME / ".qwen"), (HOME / ".qwen").exists()),
         ("SpecStory", shutil.which("specstory") or "—", bool(shutil.which("specstory"))),
         ("~/.secrets", str(HOME / ".secrets"), (HOME / ".secrets").exists()),
     ]
@@ -532,10 +547,11 @@ def cmd_import_chats(a):
 def cmd_uninstall(a):
     cfg = C.load_config()
     ws = Path(cfg["workspace"])
-    for p in [HOME / ".claude" / "CLAUDE.md", HOME / ".codex" / "AGENTS.md"]:
+    for p in [HOME / ".claude" / "CLAUDE.md", HOME / ".codex" / "AGENTS.md", HOME / ".agents" / "AGENTS.md",
+              HOME / ".grok" / "AGENTS.md", HOME / ".kimi-code" / "AGENTS.md", HOME / ".qwen" / "QWEN.md"]:
         if p.is_symlink() or (p.exists() and is_managed(p)):
             remove(p)
-    for d in [HOME / ".claude" / "skills", HOME / ".codex" / "skills", HOME / ".agents" / "skills"]:
+    for d in [HOME / ".claude" / "skills", HOME / ".codex" / "skills", HOME / ".agents" / "skills", HOME / ".qwen" / "skills"]:
         if d.exists():
             for s in d.iterdir():
                 if (s.is_symlink() and (str(ws) in os.readlink(s) or str(ENGINE) in os.readlink(s))) or (s.is_dir() and is_managed(s)):

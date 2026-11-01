@@ -105,16 +105,15 @@ def _q(v):
     return json.dumps(v, ensure_ascii=False)
 
 
-def _codex(servers, prev):
-    p = C.HOME / ".codex" / "config.toml"
-    if not p.parent.exists():
-        return log(C.t("Codex не найден — пропуск", "Codex not found — skipped"))
-    text = p.read_text(encoding="utf-8") if p.exists() else ""
+def _toml(path, label, servers):
+    if not path.parent.exists():
+        return log(C.t(f"{label} не найден — пропуск", f"{label} not found — skipped"))
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
     text = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\n?", "", text, flags=re.S).rstrip() + "\n"
     out = []
     for n, s in servers.items():
         if re.search(rf"^\[mcp_servers\.{re.escape(n)}\]", text, flags=re.M):
-            log(C.t(f"Codex: «{n}» уже задан вручную — не трогаю", f"Codex: “{n}” is defined manually — left as is"))
+            log(C.t(f"{label}: «{n}» уже задан вручную — не трогаю", f"{label}: “{n}” is defined manually — left as is"))
             continue
         out.append(f"\n[mcp_servers.{n}]")
         if "url" in s:
@@ -124,11 +123,57 @@ def _codex(servers, prev):
             out.append("args = [" + ", ".join(_q(a) for a in s.get("args", [])) + "]")
             if s.get("env"):
                 out.append("env = { " + ", ".join(f"{_q(k)} = {_q(v)}" for k, v in s["env"].items()) + " }")
-    changed = _save(p, text + "\n" + BEGIN + "\n".join(out) + "\n" + END + "\n")
-    log(f"Codex: {len(servers)} " + (C.t("— изменено", "— changed") if changed else C.t("без изменений", "unchanged")))
+    changed = _save(path, text + "\n" + BEGIN + "\n".join(out) + "\n" + END + "\n")
+    log(f"{label}: {len(servers)} " + (C.t("— изменено", "— changed") if changed else C.t("без изменений", "unchanged")))
 
 
-CLIENTS = {"claude-desktop": _claude_desktop, "claude-code": _claude_code, "codex": _codex}
+def _json(path, label, servers, prev, extra=None):
+    """mcpServers в JSON-конфиге (Kimi Code, Qwen Code); удалённые (url) пропускаем."""
+    if not path.parent.exists():
+        return log(C.t(f"{label} не найден — пропуск", f"{label} not found — skipped"))
+    cfg = json.loads(path.read_text(encoding="utf-8") or "{}") if path.exists() else {}
+    mcp = cfg.setdefault("mcpServers", {})
+    for n in prev:
+        if n not in servers:
+            mcp.pop(n, None)
+    k = 0
+    for n, s in servers.items():
+        if "url" in s:
+            continue
+        mcp[n] = {x: v for x, v in s.items() if x in ("command", "args", "env")}
+        k += 1
+    if extra:
+        extra(cfg)
+    changed = _save(path, json.dumps(cfg, ensure_ascii=False, indent=2))
+    log(f"{label}: {k} " + (C.t("— изменено", "— changed") if changed else C.t("без изменений", "unchanged")))
+
+
+def _codex(servers, prev):
+    _toml(C.HOME / ".codex" / "config.toml", "Codex", servers)
+
+
+def _grok(servers, prev):
+    _toml(Path(os.environ.get("GROK_HOME", C.HOME / ".grok")) / "config.toml", "Grok Build", servers)
+
+
+def _kimi(servers, prev):
+    _json(Path(os.environ.get("KIMI_CODE_HOME", C.HOME / ".kimi-code")) / "mcp.json", "Kimi Code", servers, prev)
+
+
+def _qwen(servers, prev):
+    def ctx(cfg):   # по умолчанию Qwen Code читает только QWEN.md / reads only QWEN.md by default
+        c = cfg.setdefault("context", {})
+        names = c.get("fileName") or []
+        names = [names] if isinstance(names, str) else list(names)
+        for n in ("AGENTS.md", "QWEN.md"):
+            if n not in names:
+                names.append(n)
+        c["fileName"] = names
+    _json(C.HOME / ".qwen" / "settings.json", "Qwen Code", servers, prev, ctx)
+
+
+CLIENTS = {"claude-desktop": _claude_desktop, "claude-code": _claude_code, "codex": _codex,
+           "grok": _grok, "kimi-code": _kimi, "qwen": _qwen}
 
 
 def sync(ws: Path):
@@ -155,5 +200,5 @@ def sync(ws: Path):
             new[client] = state.get(client, [])
     statef.parent.mkdir(parents=True, exist_ok=True)
     statef.write_text(json.dumps(new, indent=2), encoding="utf-8")
-    log(C.t("ChatGPT / Kimi / прочие веб-версии: удалённые MCP подключаются в их настройках вручную.",
-            "ChatGPT / Kimi / other web apps: add remote MCP servers manually in their settings."))
+    log(C.t("Веб-версии (ChatGPT, Grok, Kimi, Qwen, Meta AI): удалённые MCP — вручную в их настройках.",
+            "Web apps (ChatGPT, Grok, Kimi, Qwen, Meta AI): add remote MCP servers manually in their settings."))

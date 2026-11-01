@@ -1,6 +1,6 @@
 # ai-workspace
 
-**One workspace for all your AI tools.** ChatGPT, Claude, Codex, Kimi, ZCode — use any of them and switch
+**One workspace for all your AI tools.** ChatGPT, Claude, Codex, Grok, Kimi, Qwen, ZCode — use any of them and switch
 between them without losing your rules, memory, skills, connections or project history.
 
 [Русская версия →](README.md)
@@ -41,8 +41,15 @@ One command, `aiw sync` (also runs every evening), pushes it to your AI tools:
 | **Claude Code** | `~/.claude/CLAUDE.md` | ✓ | ✓ | ✓ enforced by a hook |
 | **Claude Desktop** | text for settings | — | ✓ | by rule |
 | **Codex** | `~/.codex/AGENTS.md` | ✓ | ✓ | by rule |
-| **ChatGPT (web)** | text ≤ 1500 chars | — | — | gives the entry as text |
-| **Kimi, ZCode, other agents** | `AGENTS.md` in the folder / memory messages | — | — | by rule |
+| **Grok Build** | `~/.grok/AGENTS.md` | ✓ (reads Claude skills and `~/.agents`) | ✓ | by rule |
+| **Kimi Code** | `~/.kimi-code/AGENTS.md` | ✓ (`~/.agents/skills`) | ✓ | by rule |
+| **Qwen Code** | `~/.qwen/QWEN.md` + reads `AGENTS.md` in projects | ✓ | ✓ | by rule |
+| **ZCode, other agents** | `AGENTS.md` in the project folder | — | — | by rule |
+| **ChatGPT, Grok (web)** | text ≤ 1500 chars in instructions | — | — | gives the entry as text |
+| **Kimi, Qwen Chat, Meta AI (web)** | messages for "memory" | — | — | gives the entry as text |
+
+Agents are linked only if installed: install Grok Build or Qwen Code later and the next `aiw sync`
+picks it up. Meta AI isn't available in every country and has no instructions besides memory.
 
 ## Secure by default
 
@@ -77,7 +84,8 @@ your data in `~/AI`, so updates never touch your files.
 2. **Run `~/AI/aiw sync`** and paste the texts from `~/AI/.aiw/out/` into web apps:
    - **Claude** → Settings → instructions for Claude ← `custom-instructions.txt` (already in your clipboard);
    - **ChatGPT** → Settings → Personalization → Custom instructions ← `chatgpt.txt`;
-   - **Kimi** and other apps with memory → as chat messages ← `memory-messages.txt`.
+   - **Grok** → Settings → Customize → instructions ← `chatgpt.txt`;
+   - **Kimi, Qwen Chat, Meta AI** and other apps with memory → as chat messages ← `memory-messages.txt`.
 3. **Work in projects.** `~/AI/aiw new-project Name` (group: `Clients/Name`) and open the project folder in
    Codex, Claude, Kimi, ZCode — they read the map, the status and the chronicle.
 
