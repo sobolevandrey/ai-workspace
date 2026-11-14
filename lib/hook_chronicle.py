@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Stop-хук Claude Code: если в сессии менялись файлы проекта, а летопись и статус — нет,
+"""Stop-хук Claude Code: если в сессии менялись файлы проекта, а журнал и статус — нет,
 просит Claude их обновить (не чаще раза в 30 минут). Любая ошибка — молча пропускаем.
 
 Claude Code Stop hook: if project files changed this session but the chronicle/status didn't,
@@ -87,7 +87,7 @@ def main():
     name = root.relative_to(projects).as_posix()
     month = f"{datetime.now():%Y-%m}"
     reason = C.t(
-        f"В этой сессии менялись файлы проекта «{name}», а летопись и {status} не обновлены. По скилу project-chronicle: "
+        f"В этой сессии менялись файлы проекта «{name}», а журнал и {status} не обновлены. По скилу project-chronicle: "
         f"допиши (или дополни, если уже есть) запись этой сессии в {name}/{chron}/{month}.md и перепиши {name}/{status}. "
         "Коротко, 5–10 строк. Если сессия ещё не закончена — ответь одной фразой, что запишешь в конце.",
         f"Project files in “{name}” changed this session, but the chronicle and {status} were not updated. Following the "

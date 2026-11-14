@@ -6,7 +6,7 @@
   aiw sync               разложить всё по нейросетям          sync rules, skills, hook, MCP, backup
   aiw update             обновить ai-workspace                update the engine
   aiw doctor             проверка установки                   install health check
-  aiw check              долги летописи и раздувание (без записи)  chronicle debts & bloat (read-only)
+  aiw check              долги журнала и раздувание (без записи)  chronicle debts & bloat (read-only)
   aiw new-project NAME   новый проект (Группа/Имя — в группе)  new project (Group/Name for groups)
   aiw secret set NAME    сохранить ключ для MCP                store a secret for MCP
   aiw import-chats       экспорт ChatGPT/Claude → markdown     chat exports → markdown
@@ -114,13 +114,16 @@ def detect_lang():
     return "ru" if re.search(r"ru|Russian", loc, re.I) else "en"
 
 
-def copy_templates(ws: Path, lang, name):
+def copy_templates(ws: Path, lang, name, chron=None):
     src = ENGINE / "templates" / lang
+    default = C.NAMES[lang]["chronicle"]
     made = 0
     for f in src.rglob("*"):
         if f.is_dir():
             continue
         rel = f.relative_to(src)
+        if chron and chron != default:      # старые установки: «летопись/» вместо «журнал/» / older installs
+            rel = Path(*[chron if p == default else p for p in rel.parts])
         dst = ws / rel
         if dst.exists():
             continue
@@ -165,7 +168,7 @@ def cmd_setup(a):
            "schedule": not a.no_schedule and old.get("schedule", True), "version": C.VERSION, "workspace": str(ws)}
     C.LANG = cfg["lang"]
     C.save_config(cfg)
-    n = copy_templates(ws, cfg["lang"], name)
+    n = copy_templates(ws, cfg["lang"], name, cfg["names"]["chronicle"])
     say(t(f"✓ Пространство: {ws} (новых файлов: {n})", f"✓ Workspace: {ws} (new files: {n})"))
     sec = HOME / ".secrets"
     sec.mkdir(exist_ok=True)
@@ -294,7 +297,7 @@ def cmd_sync(a):
                 elif l.is_dir() and is_managed(l):
                     shutil.rmtree(l)
 
-    say(t("4) Хук летописи для Claude Code", "4) Chronicle hook for Claude Code"))
+    say(t("4) Хук журнала для Claude Code", "4) Chronicle hook for Claude Code"))
     install_hook()
 
     say(t("5) Подключения (MCP)", "5) Connections (MCP)"))
@@ -394,6 +397,28 @@ def scan_secrets(ws, files):
     return hits
 
 
+ENGINE_REPO = "sobolevandrey/ai-workspace"
+
+
+def push_blocked(ws):
+    """Защита данных: бэкап уходит только в твой ПРИВАТНЫЙ репозиторий. / Data guard: only to YOUR PRIVATE repo."""
+    url = run(["git", "-C", str(ws), "remote", "get-url", "origin"]).stdout.strip()
+    if ENGINE_REPO in url.lower():
+        return t("origin указывает на публичный репозиторий ai-workspace — бэкап не отправлен. "
+                 "Создай свой приватный: «gh repo create my-ai-workspace --private».",
+                 "origin points to the public ai-workspace repo — backup not pushed. "
+                 "Create your own private one: “gh repo create my-ai-workspace --private”.")
+    gh = shutil.which("gh")
+    if "github.com" in url and gh:
+        r = run([gh, "repo", "view", url, "--json", "isPrivate", "-q", ".isPrivate"])
+        if r.returncode == 0 and r.stdout.strip() == "false":
+            return t(f"репозиторий {url} ПУБЛИЧНЫЙ — бэкап не отправлен, иначе твои правила и досье увидят все. "
+                     "Сделай его приватным на GitHub (Settings → Danger Zone → Change visibility).",
+                     f"repository {url} is PUBLIC — backup not pushed, otherwise everyone would see your rules and profile. "
+                     "Make it private on GitHub (Settings → Danger Zone → Change visibility).")
+    return ""
+
+
 def git_backup(ws):
     if not shutil.which("git"):
         return say(t("  git не установлен — пропуск", "  git not installed — skipped"))
@@ -414,6 +439,9 @@ def git_backup(ws):
     r = run(["git"] + ident + ["-C", str(ws), "commit", "-q", "-m", f"sync {C.TS}"])
     say(t("  изменения сохранены", "  changes committed") if r.returncode == 0 else t("  без изменений", "  nothing new"))
     if run(g + ["remote", "get-url", "origin"]).returncode == 0:
+        why = push_blocked(ws)
+        if why:
+            return say("  ⛔ " + why)
         r = run(g + ["push", "-q", "origin", "HEAD"])
         say(t("  отправлено на GitHub", "  pushed to GitHub") if r.returncode == 0 else t("  ⚠ push не удался", "  ⚠ push failed"))
     else:

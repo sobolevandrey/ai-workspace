@@ -20,6 +20,11 @@
 - Never delete anything without explicit confirmation.
 - `.secrets`, `.env`, SSH keys — don't read without a direct request and never print them in chat.
 
+## Order in project folders
+- A project root holds only `AGENTS.md`, `CLAUDE.md`, `STATUS.md` and the folders `chronicle/ docs/ code/ tasks/ media/ archive/`.
+- Anything temporary goes to `tasks/<YYYY-MM-DD-topic>/`. Task done: result → `docs/`, drafts → `archive/<YYYY-MM>/`.
+- Don't keep v2/v3 side by side: one current version, old ones go to the archive. If the project itself is a code repo, leave its layout alone.
+
 ## Projects: status and chronicle
 - Starting work in a project: read `STATUS.md` and the 2–3 latest `chronicle/` entries. If the status has a
   "⚠ Needs attention" block, handle its items first.

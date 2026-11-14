@@ -51,7 +51,7 @@ def build(ws: Path, out: Path):
 
     # 3. ChatGPT: одно поле ≤ 1500 символов / one field ≤ 1500 chars
     tail = C.t("- Файлы и проекты у меня в рабочем пространстве (в каждом проекте: AGENTS.md, {s}, {c}/). "
-               "Если попрошу «запиши в летопись» — дай готовую запись: дата · ИИ · зачем · сделано · решение · файлы · дальше.",
+               "Если попрошу «запиши в журнал» — дай готовую запись: дата · ИИ · зачем · сделано · решение · файлы · дальше.",
                "- My files and projects live in my workspace (each project: AGENTS.md, {s}, {c}/). "
                "If I say “log this”, give me a ready chronicle entry: date · AI · why · done · decision · files · next.")
     cfg = C.load_config()

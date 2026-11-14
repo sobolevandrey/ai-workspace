@@ -14,10 +14,10 @@ POINTER = HOME / ".ai-workspace.json"       # где лежит рабочее �
 TS = time.strftime("%Y%m%d-%H%M%S")
 MARK = "ai-workspace:managed"               # метка файлов, которыми управляет aiw
 SECRET_SERVICE = "ai-workspace"
-VERSION = "0.1.0"
+VERSION = "0.5.0"
 
 NAMES = {
-    "ru": {"status": "СТАТУС.md", "chronicle": "летопись"},
+    "ru": {"status": "СТАТУС.md", "chronicle": "журнал"},
     "en": {"status": "STATUS.md", "chronicle": "chronicle"},
 }
 

@@ -2,10 +2,10 @@
 """Ночная проверка рабочего пространства / nightly workspace health check.
 
 Для каждого проекта:
-  • работа без записи — файлы менялись позже, чем летопись/статус;
-  • статус отстаёт — летопись новее СТАТУС.md;
-  • месяц не подытожен — в летописи есть прошлый месяц, а в ИТОГИ.md его нет;
-  • раздувание — СТАТУС / AGENTS / месячный файл летописи слишком большие.
+  • работа без записи — файлы менялись позже, чем журнал/статус;
+  • статус отстаёт — журнал новее СТАТУС.md;
+  • месяц не подытожен — в журнале есть прошлый месяц, а в ИТОГИ.md его нет;
+  • раздувание — СТАТУС / AGENTS / месячный файл журнала слишком большие.
 Найденное пишется блоком «⚠ Требует внимания» в начало СТАТУС.md (время изменения файла
 сохраняется, чтобы блок не маскировал долг). Нет долгов — блок убирается.
 Плюс общий индекс ПРОЕКТЫ.md и проверка бюджета контекста и числа скилов.
@@ -26,13 +26,20 @@ LIMITS = {"status": 80, "agents": 200, "month": 400}        # строк
 CONTEXT_BUDGET = 6000                                         # символов: правила + досье
 SKILLS_WARN = 60
 STALE_DAYS = 90
+TASK_DAYS = 30
+LAYOUT = {   # единая схема папок проекта / unified project layout (v0.5)
+    "ru": {"docs": "документы", "tasks": "задачи", "dirs": {"документы", "код", "задачи", "медиа", "архив"},
+           "files": {"AGENTS.md", "CLAUDE.md", "СТАТУС.md", "Thumbs.db", ".DS_Store"}},
+    "en": {"docs": "docs", "tasks": "tasks", "dirs": {"docs", "code", "tasks", "media", "archive"},
+           "files": {"AGENTS.md", "CLAUDE.md", "STATUS.md", "Thumbs.db", ".DS_Store"}},
+}
 
 TXT = {
     "ru": {
         "head": "### ⚠ Требует внимания (ночная проверка {d})",
         "hint": "_Разберись с пунктами в начале сессии; блок исчезнет сам при следующей проверке._",
-        "unlogged": "- **Работа без записи:** {n} файл(ов) изменено после последней записи (до {last}): {files}. Восстанови запись в летописи по этим файлам и обнови статус.",
-        "stale": "- **Статус отстаёт от летописи:** последняя запись {log}, статус обновлён {st}. Перепиши СТАТУС.md.",
+        "unlogged": "- **Работа без записи:** {n} файл(ов) изменено после последней записи (до {last}): {files}. Восстанови запись в журнале по этим файлам и обнови статус.",
+        "stale": "- **Статус отстаёт от журнала:** последняя запись {log}, статус обновлён {st}. Перепиши СТАТУС.md.",
         "nosum": "- **Не подытожены месяцы:** {months}. Добавь в `{chron}/ИТОГИ.md` раздел `## ГГГГ-ММ` — 5–10 строк: главное и решения.",
         "big": "- **Раздулось:** {what}. Сократи: подробности — в отдельные документы со ссылкой.",
         "idx_title": "# Проекты", "idx_note": "> Генерируется ночной проверкой — не редактировать. Обновлено {d}.",
@@ -42,6 +49,8 @@ TXT = {
         "skills": "⚠ Скилов {n} (> {w}): их описания занимают контекст каждой нейросети. Неактуальные — в skills/_архив/.",
         "inbox": "⚠ memory/inbox.md не разобран ({n} строк).",
         "summary": "Проектов: {p}, с долгами: {d}.",
+        "loose": "- **Не на месте:** в корне проекта лишнее ({n}): {files}. Разложи по `документы/ код/ задачи/ медиа/ архив/`.",
+        "oldtasks": "- **Старые задачи:** {n} папок в `задачи/` не менялись > {d} дн.: {list}. Закрыта — итог в `документы/`, остальное в `архив/ГГГГ-ММ/`.",
     },
     "en": {
         "head": "### ⚠ Needs attention (nightly check {d})",
@@ -57,6 +66,8 @@ TXT = {
         "skills": "⚠ {n} skills (> {w}): their descriptions take up every AI's context. Move unused ones to skills/_archive/.",
         "inbox": "⚠ memory/inbox.md is not processed ({n} lines).",
         "summary": "Projects: {p}, with issues: {d}.",
+        "loose": "- **Out of place:** extra items in the project root ({n}): {files}. Sort them into `docs/ code/ tasks/ media/ archive/`.",
+        "oldtasks": "- **Old tasks:** {n} folders in `tasks/` unchanged for > {d} days: {list}. Done — result to `docs/`, the rest to `archive/YYYY-MM/`.",
     },
 }
 
@@ -81,7 +92,7 @@ def project_dirs(ws, chron=""):
 
 
 def activity(p, chron, status, children=()):
-    """Самый свежий рабочий файл проекта (без служебных, летописи и статуса)."""
+    """Самый свежий рабочий файл проекта (без служебных, журнала и статуса)."""
     newest, files = 0.0, []
     skip_sub = {chron} | set(children)
     for root, dirs, fs in os.walk(p):
@@ -145,6 +156,26 @@ def check_project(p, names, lang, now, children=()):
             big.append(f"{chron}/{m.name} {n}/{LIMITS['month']}")
     if big:
         issues.append(T["big"].format(what=", ".join(big)))
+
+    lay = LAYOUT[lang]
+    if (p / lay["docs"]).is_dir() or (p / lay["tasks"]).is_dir():      # проект на единой схеме / uses the layout
+        allowed = lay["dirs"] | set(children) | {chron, "_to_delete"}
+        loose = [c.name for c in sorted(p.iterdir()) if not c.name.startswith(".") and c.name != ".aiw-group"
+                 and not (c.is_dir() and c.name in allowed) and not (c.is_file() and c.name in lay["files"])]
+        if loose:
+            issues.append(T["loose"].format(n=len(loose), files=", ".join(f"`{x}`" for x in loose[:8])))
+        td, old = p / lay["tasks"], []
+        for c in (sorted(td.iterdir()) if td.is_dir() else []):
+            if c.name.startswith(".") or not c.is_dir():
+                continue
+            try:
+                m = max([c.stat().st_mtime] + [x.lstat().st_mtime for x in c.iterdir()])
+            except OSError:
+                continue
+            if now - m > TASK_DAYS * 86400:
+                old.append(c.name)
+        if old:
+            issues.append(T["oldtasks"].format(n=len(old), d=TASK_DAYS, list=", ".join(f"`{x}`" for x in old[:8])))
     return issues, max(newest, last_rec), st
 
 

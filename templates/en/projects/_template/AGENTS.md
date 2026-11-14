@@ -7,8 +7,12 @@
 <!-- client, constraints, deadlines, links -->
 
 ## Where things are
-- `STATUS.md` — where we are now
-- `chronicle/` — monthly history
+- `STATUS.md` — where we are now; `chronicle/` — monthly history
+- `docs/` — living documents: description, specs, plans
+- `code/` — repositories and scripts
+- `tasks/<YYYY-MM-DD-topic>/` — working files of a task
+- `media/` — photos, videos, mockups
+- `archive/<YYYY-MM>/` — closed and outdated
 
 ## Status and chronicle
 - **`STATUS.md`** — where we are now (overwritten). **`chronicle/YYYY-MM.md`** — what happened and why (newest first).

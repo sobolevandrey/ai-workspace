@@ -29,7 +29,12 @@ are, how to work with you, and where each project stands.
 │   └── Project/
 │       ├── AGENTS.md        project map for the AI
 │       ├── STATUS.md        where we are now
-│       └── chronicle/       what was done, by whom, when and why
+│       ├── chronicle/       what was done, by whom, when and why
+│       ├── docs/            living documents: specs, plans, description
+│       ├── code/            repositories and scripts
+│       ├── tasks/           working files, one folder per task
+│       ├── media/           photos, videos, mockups
+│       └── archive/         closed and outdated
 ├── chats/               ChatGPT/Claude export archive (optional)
 └── prompts/             utility prompts
 ```
@@ -55,7 +60,11 @@ picks it up. Meta AI isn't available in every country and has no instructions be
 
 - **Keys and passwords never live in the workspace.** For MCP use `aiw secret set NAME` (macOS Keychain,
   system keyring or `~/.secrets` readable only by you); configs reference `"secret:NAME"`.
-- **Only the core goes to the git backup** (rules, profile, skills, settings). Projects and keys never do.
+- **Nothing is sent anywhere:** no analytics, no telemetry, no phoning home. The only network use is downloading
+  the tool itself from GitHub (install and `aiw update`).
+- **Projects and client data never leave your computer.** The whole `projects/` folder is excluded from git.
+- **Only the core goes to the git backup** (rules, profile, skills, settings) — and only to **your** private
+  repository. If it is public, or it is the ai-workspace repo itself, the push is blocked.
 - **Every commit is scanned for tokens and private keys.** Anything suspicious — the commit is cancelled.
 - **Your existing files are never overwritten:** anything in the way goes to `.aiw/backups/`, and skills you
   created directly in an AI tool are adopted into `skills/`.
@@ -144,6 +153,7 @@ Only a little goes into each conversation: rules and profile (~6000-char budget)
 | `STATUS.md`, `AGENTS.md` | line limits, the check warns about bloat |
 | Rules and profile | a character budget; narrow rules move into skills (loaded only when needed) |
 | Skills | a warning after 60; unused ones go to `skills/_archive/` |
+| Folder order | a project root holds only the layout above; the check flags strays and tasks untouched > 30 days |
 | Projects | `PROJECTS.md` with last activity; inactive > 90 days — candidates for `projects/_archive/` |
 
 ## Skills and connections
